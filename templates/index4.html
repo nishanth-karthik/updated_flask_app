@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32-CAM Dashboard</title>
+  <style>
+    body { font-family: Arial; background: #f8f9fa; text-align: center; }
+    h2 { color: #333; }
+    .img-container {
+      display: inline-block;
+      margin: 15px;
+    }
+    .img-container h3 {
+      margin: 5px 0;
+      color: #444;
+    }
+    .timestamp {
+      font-size: 14px;
+      color: gray;
+      margin-top: 5px;
+    }
+    img {
+      border: 2px solid #444;
+      width: 320px;
+      height: auto;
+    }
+    .status {
+      font-size: 18px;
+      margin: 20px;
+    }
+    .status div {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Dashboard Summary</h2>
+  <div class="img-container">
+    <h3>Previous frame:</h3>
+    <img id="Previous_frame" src="" alt="Previous frame">
+    <div id="prev_time" class="timestamp">Captured at: -</div>
+  </div>
+  <div class="img-container">
+    <h3>Current frame:</h3>
+    <img id="Current_frame" src="" alt="Current frame">
+    <div id="curr_time" class="timestamp">Captured at: -</div>
+  </div>
+
+  <!-- Detected + Missing objects -->
+  <div class="status" id="status">
+    <div style="color:blue">Detected: -</div>
+    <div style="color:red">Missing: -</div>
+  </div>
+
+  <script>
+    async function updateData() {
+      const res = await fetch('/data');
+      const data = await res.json();
+
+      // update images
+      if (data.prev_img) document.getElementById("Previous_frame").src = data.prev_img + "?" + new Date().getTime();
+      if (data.curr_img) document.getElementById("Current_frame").src = data.curr_img + "?" + new Date().getTime();
+
+      // update timestamps
+      if (data.prev_time) document.getElementById("prev_time").innerText = "Captured at: " + data.prev_time;
+      if (data.curr_time) document.getElementById("curr_time").innerText = "Captured at: " + data.curr_time;
+
+      // ✅ update detected/missing objects
+      let formatted = `
+        <div style="color:blue">Detected:<br>${data.detected_html || "None"}</div>
+        <div style="color:red">Missing:<br>${data.missing_html || "None"}</div>
+      `;
+      document.getElementById("status").innerHTML = formatted;
+    }
+
+    setInterval(updateData, 2000);
+    updateData();
+  </script>
+</body>
+</html>
