@@ -6,6 +6,7 @@ from collections import defaultdict
 from flask import Flask, render_template, Response, jsonify, request
 import threading
 from datetime import datetime
+import pytz # Import the pytz library
 import pandas as pd
 import os
 from openpyxl import load_workbook
@@ -23,8 +24,8 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ==========================
 # --- YOLO Parameters ---
 # ==========================
-whT = 608  # Changed from 224 to a larger value for better image processing
-confThreshold = 0.15
+whT = 608 
+confThreshold = 0.15 
 nmsThreshold = 0.3
 with open("coco.names", 'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
@@ -52,11 +53,9 @@ lock = threading.Lock()
 EXCEL_FILE = "detection_log.xlsx"
 
 def _safe_join_missing(missing_list):
-    # Changed to return "None" instead of "No missing objects"
     return ", ".join(missing_list) if missing_list else "None"
 
 def _safe_join_detected(counts_dict):
-    # Changed to return "None" instead of "Nothing detected"
     return ", ".join([f"{k}:{v}" for k, v in counts_dict.items()]) if counts_dict else "None"
 
 def log_to_excel_and_supabase(prev_time, curr_time, missing_objs, current_counts):
@@ -64,7 +63,6 @@ def log_to_excel_and_supabase(prev_time, curr_time, missing_objs, current_counts
     prev_time_no_date = prev_time.split(" ")[1] if prev_time else ""
     curr_time_no_date = curr_time.split(" ")[1] if curr_time else ""
 
-    # These now call the updated functions that return "None"
     missing_str = _safe_join_missing(missing_objs)
     detected_str = _safe_join_detected(current_counts)
 
@@ -199,7 +197,10 @@ def send_result(current_counts, result_img):
         latest_result["prev_img"] = latest_result["curr_img"]
         latest_result["prev_time"] = prev_time
         latest_result["curr_img"] = result_img.copy()
-        curr_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Change to get the current time in IST
+        ist_timezone = pytz.timezone('Asia/Kolkata')
+        curr_time = datetime.now(ist_timezone).strftime("%Y-%m-%d %H:%M:%S")
         latest_result["curr_time"] = curr_time
 
     summary_msg = f"{curr_time} | Detected: {detected_str} | Missing: {missing_str}"
@@ -271,6 +272,4 @@ def upload():
 # --- Start Flask ---
 # ==========================
 if __name__ == "__main__":
-    # Render uses Gunicorn to run the app. The 'app.run' below is for local testing.
-    # On Render, the 'gunicorn app:app' command takes care of running this.
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
