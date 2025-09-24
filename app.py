@@ -268,4 +268,6 @@ def upload():
 # --- Start Flask ---
 # ==========================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # Render uses Gunicorn to run the app. The 'app.run' below is for local testing.
+    # On Render, the 'gunicorn app:app' command takes care of running this.
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
