@@ -23,8 +23,8 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ==========================
 # --- YOLO Parameters ---
 # ==========================
-whT = 416  # Changed from 224 to a larger value for better image processing
-confThreshold = 0.3
+whT = 608  # Changed from 224 to a larger value for better image processing
+confThreshold = 0.15
 nmsThreshold = 0.3
 with open("coco.names", 'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
