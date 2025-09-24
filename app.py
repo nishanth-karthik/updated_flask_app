@@ -23,7 +23,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ==========================
 # --- YOLO Parameters ---
 # ==========================
-whT = 224
+whT = 416  # Changed from 224 to a larger value for better image processing
 confThreshold = 0.3
 nmsThreshold = 0.3
 with open("coco.names", 'rt') as f:
@@ -52,16 +52,19 @@ lock = threading.Lock()
 EXCEL_FILE = "detection_log.xlsx"
 
 def _safe_join_missing(missing_list):
-    return ", ".join(missing_list) if missing_list else "No missing objects"
+    # Changed to return "None" instead of "No missing objects"
+    return ", ".join(missing_list) if missing_list else "None"
 
 def _safe_join_detected(counts_dict):
-    return ", ".join([f"{k}:{v}" for k, v in counts_dict.items()]) if counts_dict else "Nothing detected"
+    # Changed to return "None" instead of "Nothing detected"
+    return ", ".join([f"{k}:{v}" for k, v in counts_dict.items()]) if counts_dict else "None"
 
 def log_to_excel_and_supabase(prev_time, curr_time, missing_objs, current_counts):
     date_str = curr_time.split(" ")[0] if curr_time else ""
     prev_time_no_date = prev_time.split(" ")[1] if prev_time else ""
     curr_time_no_date = curr_time.split(" ")[1] if curr_time else ""
 
+    # These now call the updated functions that return "None"
     missing_str = _safe_join_missing(missing_objs)
     detected_str = _safe_join_detected(current_counts)
 
